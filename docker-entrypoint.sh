@@ -45,7 +45,11 @@ init_mautic() {
     #
 
     # Auto-generate config/local.php from environment if missing
-    if [ ! -f "/var/www/html/config/local.php" ]; then
+    # Skip if MAUTIC_INSTALL=true to allow the web installer to run
+    if [ "${MAUTIC_INSTALL,,}" = "true" ]; then
+        echo "MAUTIC_INSTALL=true: skipping auto-config, web installer will run"
+        rm -f /var/www/html/config/local.php
+    elif [ ! -f "/var/www/html/config/local.php" ]; then
         echo "Generating config/local.php from environment..."
         secret="${MAUTIC_SECRET_KEY}"
         if [ -z "$secret" ]; then
