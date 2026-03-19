@@ -54,8 +54,13 @@ RUN mkdir -p /var/www/html/var/cache \
 # Set higher memory limit for Composer and ignore platform requirements for Railway
 ENV COMPOSER_MEMORY_LIMIT=-1
 ENV COMPOSER_ALLOW_SUPERUSER=1
+# Cache bust to force fresh vendor install
+ARG CACHEBUST=1
 # Install from lockfile (7.0.1 ships with composer.lock)
 RUN composer install --no-interaction --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
+
+# Verify Symfony versions are correct (debug build issue)
+RUN php -r "require 'vendor/autoload.php'; echo 'var-exporter: OK, generateLazyGhost exists: ' . (method_exists('Symfony\Component\VarExporter\ProxyHelper', 'generateLazyGhost') ? 'YES' : 'NO') . PHP_EOL;"
 
 # Run individual composer scripts with proper memory limits
 RUN composer run-script githooks --no-interaction || true
