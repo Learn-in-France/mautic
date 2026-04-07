@@ -41,6 +41,9 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . /var/www/html
 
+# Create .env file (required by Symfony bootstrap, gitignored so not in repo)
+RUN printf 'APP_ENV=prod\nAPP_DEBUG=0\n' > /var/www/html/.env
+
 # Create necessary directories with proper permissions
 RUN mkdir -p /var/www/html/var/cache \
     && mkdir -p /var/www/html/var/logs \
@@ -119,8 +122,8 @@ RUN echo '<VirtualHost 0.0.0.0:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Configure Apache for Railway
-RUN echo "Listen 0.0.0.0:80" >> /etc/apache2/ports.conf
+# Configure Apache for Railway (replace default Listen to avoid duplicate binding)
+RUN sed -i 's/^Listen 80$/Listen 0.0.0.0:80/' /etc/apache2/ports.conf
 
 # PHP configuration optimizations for Mautic production
 RUN echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/mautic.ini \
